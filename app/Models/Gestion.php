@@ -4,21 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class Gestion extends Model
 {
+    // Lista blanca de tablas permitidas para evitar accesos indebidos
+    protected static $tablasPermitidas = ['products', 'sales', 'categories', 'suppliers', 'users'];
+
     public static function obtenerDatos($tabla)
     {
-        // Si la tabla es productos, realizamos JOINs para mostrar nombres amigables
+        // Mejora 1: Seguridad. Validar que la tabla sea permitida
+        if (!in_array($tabla, self::$tablasPermitidas)) {
+            throw new \Exception("Tabla no autorizada.");
+        }
+
+        // Mejora 2: Manejo de JOINs optimizados
         if ($tabla == 'products') {
             return DB::table('products')
                 ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
                 ->leftJoin('suppliers', 'products.supplier_id', '=', 'suppliers.id')
-                ->select('products.id', 'products.name', 'products.stock', 'products.price', 'categories.name as category_name', 'suppliers.name as supplier_name')
+                ->select('products.id', 'products.name', 'products.stock', 'products.price', 
+                         'categories.name as category_name', 'suppliers.name as supplier_name')
                 ->get();
         }
 
-        // Si la tabla es ventas, realizamos JOIN para mostrar el nombre del producto
         if ($tabla == 'sales') {
             return DB::table('sales')
                 ->leftJoin('products', 'sales.product_id', '=', 'products.id')
@@ -26,7 +35,11 @@ class Gestion extends Model
                 ->get();
         }
         
-        // Para todas las demás tablas (users, categories, suppliers) devolvemos todo tal cual
+        // Mejora 3: Verificación de existencia de tabla antes de consultar
+        if (!Schema::hasTable($tabla)) {
+            return collect(); // Retorna colección vacía si no existe
+        }
+
         return DB::table($tabla)->get();
     }
 }

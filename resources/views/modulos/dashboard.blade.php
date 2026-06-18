@@ -1,4 +1,5 @@
 @extends('layouts.app')
+<<<<<<< HEAD
 @section('content')
 <div class="max-w-5xl mx-auto">
     <h2 class="text-[10px] font-bold uppercase tracking-[0.5em] text-emerald-500 mb-6 text-center">Panel de Control</h2>
@@ -11,4 +12,18 @@
         @endforeach
     </div>
 </div>
+=======
+
+@section('content')
+    <h2 class="text-3xl font-bold mb-8">PANEL DE CONTROL</h2>
+    <div class="grid grid-cols-3 gap-8">
+        @foreach(['CLIENTES', 'PROYECTOS', 'TAREAS'] as $modulo)
+        <a href="/gestion/{{ strtolower($modulo) }}" 
+           class="border-2 border-[#0F172A] p-10 hover:bg-[#0F172A] hover:text-white transition-all duration-300 block">
+            <h3 class="text-2xl font-bold">{{ $modulo }}</h3>
+            <p class="text-sm opacity-70">ACCESO A REGISTROS</p>
+        </a>
+        @endforeach
+    </div>
+>>>>>>> 0eec277baffc3a536c563a0b546fb0ab16e1f430
 @endsection

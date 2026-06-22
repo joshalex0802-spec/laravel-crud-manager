@@ -13,7 +13,8 @@
             @csrf
             
             <div class="group">
-                <input type="email" name="email" placeholder="CORREO ELECTRÓNICO" required
+                <!-- CORREGIDO: name="correo" para hacer match con el AuthController -->
+                <input type="email" name="correo" placeholder="CORREO ELECTRÓNICO" required
                     class="w-full bg-transparent border-b border-white/20 p-2 text-white placeholder-gray-600 outline-none focus:border-emerald-500 transition-all duration-300">
             </div>
 
@@ -28,7 +29,7 @@
             </button>
         </form>
 
-        @if ($errors->any())
+        @if (session('error') || $errors->any())
             <div class="mt-8 text-center">
                 <p class="text-red-500 text-[10px] uppercase tracking-widest">Credenciales incorrectas</p>
             </div>

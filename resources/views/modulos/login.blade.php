@@ -9,7 +9,7 @@
             <div class="w-12 h-[1px] bg-emerald-500 mx-auto mt-4"></div>
         </div>
         
-        <form action="{{ route('login') }}" method="POST" class="space-y-8">
+        <form action="{{ route('login.post') }}" method="POST" class="space-y-8">
             @csrf
             
             <div class="group">

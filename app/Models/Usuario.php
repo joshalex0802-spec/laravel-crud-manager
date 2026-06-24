@@ -6,16 +6,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Usuario extends Authenticatable
 {
-    protected $table = 'Usuarios'; // Tu tabla real de MySQL
-    protected $primaryKey = 'id_usuario'; // Tu llave primaria real
-    public $timestamps = false; // Desactivamos esto porque no usamos 'created_at'
+    // Usamos la tabla estándar 'users'
+    protected $table = 'users';
 
-    protected $fillable = ['nombre', 'correo', 'contrasena', 'rol'];
-    
-    protected $hidden = ['contrasena']; // Oculta la clave en las consultas por seguridad
+    // Laravel espera que la llave primaria sea 'id'
+    protected $primaryKey = 'id';
 
-    // Le aclaramos a Laravel que la clave en tu tabla se llama 'contrasena' y no 'password'
-    public function getAuthPassword() {
-        return $this->contrasena;
-    }
+    // Campos permitidos para asignación masiva
+    protected $fillable = ['name', 'email', 'password', 'role'];
+
+    // Ocultar el password en las consultas
+    protected $hidden = ['password'];
 }

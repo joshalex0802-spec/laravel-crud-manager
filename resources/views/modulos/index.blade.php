@@ -22,7 +22,14 @@
                 <tr class="border-b border-white/10">
                     @if($datos->isNotEmpty())
                         @foreach(array_keys((array)$datos->first()) as $col) 
-                            <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">{{ str_replace('_', ' ', $col) }}</th> 
+                            {{-- Si la columna es un ID de relación, mostramos un título amigable --}}
+                            @if($col === 'category_id')
+                                <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">Categoría</th>
+                            @elseif($col === 'supplier_id')
+                                <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">Proveedor</th>
+                            @else
+                                <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">{{ str_replace('_', ' ', $col) }}</th> 
+                            @endif
                         @endforeach
                     @endif
                     @if(session('user_role') === 'Admin')
@@ -34,7 +41,16 @@
                 @forelse($datos as $fila)
                 <tr class="hover:bg-white/5 transition">
                     @foreach((array)$fila as $key => $v) 
-                        <td class="p-4 sm:p-6 text-sm font-light text-gray-200 whitespace-nowrap">{{ $v ?? '---' }}</td> 
+                        <td class="p-4 sm:p-6 text-sm font-light text-gray-200 whitespace-nowrap">
+                            {{-- Verificación inteligente de relaciones para no pintar puros IDs feos --}}
+                            @if($key === 'category_id' && isset($fila->category))
+                                {{ $fila->category->name }}
+                            @elseif($key === 'supplier_id' && isset($fila->supplier))
+                                {{ $fila->supplier->name }}
+                            @else
+                                {{ $v ?? '---' }}
+                            @endif
+                        </td> 
                     @endforeach
                     @if(session('user_role') === 'Admin')
                     <td class="p-4 sm:p-6 text-center flex gap-4 justify-center">

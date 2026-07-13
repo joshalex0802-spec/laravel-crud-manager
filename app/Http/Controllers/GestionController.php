@@ -14,14 +14,26 @@ class GestionController extends Controller
 
     public function index($tabla)
     {
-        if (!session()->has('user_id')) return redirect('/');
+        // Verificar si el usuario está logueado
+        if (!session()->has('user_id')) {
+            return redirect('/');
+        }
         
-        // Validar que la tabla solicitada sea válida
+        // Validar que la tabla solicitada esté permitida
         if (!in_array($tabla, $this->tablasPermitidas)) {
             return back()->with('error', 'Tabla no permitida.');
         }
 
-        $datos = Gestion::obtenerDatos($tabla);
+        // Carga dinámica usando Eloquent para las tablas con relaciones
+        if ($tabla === 'products') {
+            $datos = \App\Models\Product::with(['category', 'supplier'])->get();
+        } elseif ($tabla === 'sales') {
+            $datos = \App\Models\Sale::with('product')->get();
+        } else {
+            // Para las tablas simples (categories, suppliers, users)
+            $datos = Gestion::obtenerDatos($tabla);
+        }
+
         return view('modulos.index', compact('datos', 'tabla'));
     }
 
@@ -38,10 +50,10 @@ class GestionController extends Controller
         }
 
         try {
-            // 3. Limpiar los datos del request
+            // 3. Limpiar los datos del request (ignorar el token de seguridad e ID)
             $data = $request->except(['_token', 'id']);
             
-            // Ejecución segura
+            // Ejecución de la operación en la base de datos
             if ($accion == 'agregar') {
                 DB::table($tabla)->insert($data);
             } elseif ($accion == 'editar') {

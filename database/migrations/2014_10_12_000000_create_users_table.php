@@ -21,10 +21,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
-<<<<<<< HEAD
             $table->string('role')->default('Vendedor'); // Esto crea la columna automáticamente
-=======
->>>>>>> 0eec277baffc3a536c563a0b546fb0ab16e1f430
         });
     }
 

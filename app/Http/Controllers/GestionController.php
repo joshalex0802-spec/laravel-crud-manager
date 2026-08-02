@@ -4,34 +4,42 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\Gestion;
-use Illuminate\Support\Facades\Schema;
+use App\Models\User;
+use App\Models\Product;
+use App\Models\Category;
+use App\Models\Supplier;
+use App\Models\Sale;
 
 class GestionController extends Controller
 {
-    // Lista blanca para proteger las rutas
-    protected $tablasPermitidas = ['products', 'sales', 'categories', 'suppliers', 'users'];
+    // Lista blanca con los 5 módulos permitidos
+    protected $tablasPermitidas = ['users', 'products', 'categories', 'suppliers', 'sales'];
 
     public function index($tabla)
     {
-        // Verificar si el usuario está logueado
+        // Verificar si el usuario está logueado por sesión
         if (!session()->has('user_id')) {
             return redirect('/');
         }
         
         // Validar que la tabla solicitada esté permitida
         if (!in_array($tabla, $this->tablasPermitidas)) {
-            return back()->with('error', 'Tabla no permitida.');
+            return back()->with('error', 'Módulo no permitido.');
         }
 
-        // Carga dinámica usando Eloquent para las tablas con relaciones
-        if ($tabla === 'products') {
-            $datos = \App\Models\Product::with(['category', 'supplier'])->get();
+        // Carga de datos usando los modelos Eloquent limpios
+        if ($tabla === 'users') {
+            $datos = User::all();
+        } elseif ($tabla === 'products') {
+            $datos = Product::all();
+        } elseif ($tabla === 'categories') {
+            $datos = Category::all();
+        } elseif ($tabla === 'suppliers') {
+            $datos = Supplier::all();
         } elseif ($tabla === 'sales') {
-            $datos = \App\Models\Sale::with('product')->get();
+            $datos = Sale::all();
         } else {
-            // Para las tablas simples (categories, suppliers, users)
-            $datos = Gestion::obtenerDatos($tabla);
+            $datos = collect();
         }
 
         return view('modulos.index', compact('datos', 'tabla'));
@@ -39,7 +47,7 @@ class GestionController extends Controller
 
     public function ejecutar(Request $request, $tabla, $accion)
     {
-        // 1. Validar acceso de Admin
+        // 1. Validar acceso de Administrador
         if (session('user_role') !== 'Admin') {
             return back()->with('error', 'Acceso denegado: Solo administradores.');
         }
@@ -50,9 +58,18 @@ class GestionController extends Controller
         }
 
         try {
-            // 3. Limpiar los datos del request (ignorar el token de seguridad e ID)
+            // 3. Limpiar los datos del request (ignorar token e ID)
             $data = $request->except(['_token', 'id']);
             
+            // Si es usuario y se modifica la contraseña, la encriptamos de forma segura
+            if ($tabla === 'users') {
+                if (isset($data['password']) && !empty($data['password'])) {
+                    $data['password'] = bcrypt($data['password']);
+                } else {
+                    unset($data['password']); // No sobreescribir si llega vacía al editar
+                }
+            }
+
             // Ejecución de la operación en la base de datos
             if ($accion == 'agregar') {
                 DB::table($tabla)->insert($data);

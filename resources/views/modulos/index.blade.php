@@ -21,23 +21,25 @@
             <thead>
                 <tr class="border-b border-white/10">
                     @if($datos->isNotEmpty())
-                        @foreach(array_keys($datos->first()->toArray()) as $col) 
-                            @if($col !== 'password' && $col !== 'remember_token')
-                                @if($col === 'category_id')
-                                    <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">Categoría</th>
-                                @elseif($col === 'supplier_id')
-                                    <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">Proveedor</th>
-                                @else
-                                    <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">{{ str_replace('_', ' ', $col) }}</th> 
-                                @endif
-                            @endif
-                        @endforeach
-                    @else
-                        <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em]">Información del Módulo</th>
-                    @endif
-                    @if(session('user_role') === 'Admin')
-                        <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] text-center">Acciones</th>
-                    @endif
+    @foreach(array_keys((array)$datos->first()->getAttributes()) as $col)
+        @if($col !== 'id' && $col !== 'created_at' && $col !== 'updated_at' && $col !== 'email_verified_at' && $col !== 'remember_token')
+        <div class="mb-6">
+            <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-2">{{ str_replace('_', ' ', $col) }}</label>
+            <input type="{{ $col === 'password' ? 'password' : 'text' }}" name="{{ $col }}" :value="openEdit ? item.{{ $col }} : ''" class="w-full bg-transparent border-b border-white/20 p-2 text-white outline-none focus:border-emerald-500 transition">
+        </div>
+        @endif
+    @endforeach
+@else
+    {{-- Si la tabla está vacía, le pedimos las columnas directamente a la tabla de la base de datos --}}
+    @foreach(Schema::getColumnListing($tabla) as $col)
+        @if($col !== 'id' && $col !== 'created_at' && $col !== 'updated_at' && $col !== 'email_verified_at' && $col !== 'remember_token')
+        <div class="mb-6">
+            <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-2">{{ str_replace('_', ' ', $col) }}</label>
+            <input type="{{ $col === 'password' ? 'password' : 'text' }}" name="{{ $col }}" :value="openEdit ? item.{{ $col }} : ''" class="w-full bg-transparent border-b border-white/20 p-2 text-white outline-none focus:border-emerald-500 transition">
+        </div>
+        @endif
+    @endforeach
+@endif
                 </tr>
             </thead>
             <tbody class="divide-y divide-white/5">

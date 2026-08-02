@@ -42,17 +42,17 @@
             <tbody class="divide-y divide-white/5">
                 @forelse($datos as $fila)
                 <tr class="hover:bg-white/5 transition">
-                    @foreach($fila->getAttributes() as $key => $v) 
-                        <td class="p-4 sm:p-6 text-sm font-light text-gray-200 whitespace-nowrap">
-                            @if($key === 'category_id' && isset($fila->category))
-                                {{ $fila->category->name }}
-                            @elseif($key === 'supplier_id' && isset($fila->supplier))
-                                {{ $fila->supplier->name }}
-                            @else
-                                {{ $v ?? '---' }}
-                            @endif
-                        </td> 
-                    @endforeach
+                   @foreach($fila->getAttributes() as $key => $v) 
+    <td class="p-4 sm:p-6 text-sm font-light text-gray-200 whitespace-nowrap">
+        @if($key === 'category_id' && isset($fila->category))
+            {{ $fila->category->name }}
+        @elseif($key === 'supplier_id' && isset($fila->supplier))
+            {{ $fila->supplier->name }}
+        @else
+            {{ is_array($v) ? json_encode($v) : ($v ?? '---') }}
+        @endif
+    </td> 
+@endforeach
                     @if(session('user_role') === 'Admin')
                     <td class="p-4 sm:p-6 text-center flex gap-4 justify-center">
                         <button @click="openEdit = true; item = {{ json_encode($fila) }}" class="text-[9px] uppercase tracking-widest hover:text-emerald-500 transition">Editar</button>

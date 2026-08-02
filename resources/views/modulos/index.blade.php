@@ -21,17 +21,18 @@
             <thead>
                 <tr class="border-b border-white/10">
                     @if($datos->isNotEmpty())
-                        @foreach(array_keys((array)$datos->first()->getAttributes()) as $col) 
-                            @if($col === 'category_id')
-                                <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">Categoría</th>
-                            @elseif($col === 'supplier_id')
-                                <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">Proveedor</th>
-                            @else
-                                <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">{{ str_replace('_', ' ', $col) }}</th> 
+                        @foreach(array_keys($datos->first()->toArray()) as $col) 
+                            @if($col !== 'password' && $col !== 'remember_token')
+                                @if($col === 'category_id')
+                                    <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">Categoría</th>
+                                @elseif($col === 'supplier_id')
+                                    <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">Proveedor</th>
+                                @else
+                                    <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">{{ str_replace('_', ' ', $col) }}</th> 
+                                @endif
                             @endif
                         @endforeach
                     @else
-                        {{-- Cabeceras predeterminadas por si la tabla está vacía para que no colapse --}}
                         <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em]">Información del Módulo</th>
                     @endif
                     @if(session('user_role') === 'Admin')
@@ -42,17 +43,21 @@
             <tbody class="divide-y divide-white/5">
                 @forelse($datos as $fila)
                 <tr class="hover:bg-white/5 transition">
-                   @foreach($fila->getAttributes() as $key => $v) 
-    <td class="p-4 sm:p-6 text-sm font-light text-gray-200 whitespace-nowrap">
-        @if($key === 'category_id' && isset($fila->category))
-            {{ $fila->category->name }}
-        @elseif($key === 'supplier_id' && isset($fila->supplier))
-            {{ $fila->supplier->name }}
-        @else
-            {{ is_array($v) ? json_encode($v) : ($v ?? '---') }}
-        @endif
-    </td> 
-@endforeach
+                    @foreach($fila->toArray() as $key => $v) 
+                        @if($key !== 'password' && $key !== 'remember_token')
+                        <td class="p-4 sm:p-6 text-sm font-light text-gray-200 whitespace-nowrap">
+                            @if($key === 'category_id' && isset($fila->category))
+                                {{ $fila->category->name }}
+                            @elseif($key === 'supplier_id' && isset($fila->supplier))
+                                {{ $fila->supplier->name }}
+                            @elseif(is_array($v) || is_object($v))
+                                {{ json_encode($v) }}
+                            @else
+                                {{ $v ?? '---' }}
+                            @endif
+                        </td> 
+                        @endif
+                    @endforeach
                     @if(session('user_role') === 'Admin')
                     <td class="p-4 sm:p-6 text-center flex gap-4 justify-center">
                         <button @click="openEdit = true; item = {{ json_encode($fila) }}" class="text-[9px] uppercase tracking-widest hover:text-emerald-500 transition">Editar</button>

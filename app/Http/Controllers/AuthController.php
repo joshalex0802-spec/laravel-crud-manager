@@ -11,7 +11,7 @@ class AuthController extends Controller
     public function login(Request $request)
 {
     // Buscamos por 'email' y usamos los nombres correctos
-    $user = \App\Models\Usuario::where('email', $request->email)->first();
+    $user = \App\Models\User::where('email', $request->email)->first();
 
     if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
         session(['user_id' => $user->id, 'user_role' => $user->role]);

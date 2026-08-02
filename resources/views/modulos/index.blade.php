@@ -21,8 +21,7 @@
             <thead>
                 <tr class="border-b border-white/10">
                     @if($datos->isNotEmpty())
-                        @foreach(array_keys((array)$datos->first()) as $col) 
-                            {{-- Si la columna es un ID de relación, mostramos un título amigable --}}
+                        @foreach(array_keys((array)$datos->first()->getAttributes()) as $col) 
                             @if($col === 'category_id')
                                 <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">Categoría</th>
                             @elseif($col === 'supplier_id')
@@ -31,6 +30,9 @@
                                 <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] whitespace-nowrap">{{ str_replace('_', ' ', $col) }}</th> 
                             @endif
                         @endforeach
+                    @else
+                        {{-- Cabeceras predeterminadas por si la tabla está vacía para que no colapse --}}
+                        <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em]">Información del Módulo</th>
                     @endif
                     @if(session('user_role') === 'Admin')
                         <th class="p-4 sm:p-6 text-[9px] font-bold text-gray-500 uppercase tracking-[0.3em] text-center">Acciones</th>
@@ -40,9 +42,8 @@
             <tbody class="divide-y divide-white/5">
                 @forelse($datos as $fila)
                 <tr class="hover:bg-white/5 transition">
-                    @foreach((array)$fila as $key => $v) 
+                    @foreach($fila->getAttributes() as $key => $v) 
                         <td class="p-4 sm:p-6 text-sm font-light text-gray-200 whitespace-nowrap">
-                            {{-- Verificación inteligente de relaciones para no pintar puros IDs feos --}}
                             @if($key === 'category_id' && isset($fila->category))
                                 {{ $fila->category->name }}
                             @elseif($key === 'supplier_id' && isset($fila->supplier))
@@ -57,7 +58,7 @@
                         <button @click="openEdit = true; item = {{ json_encode($fila) }}" class="text-[9px] uppercase tracking-widest hover:text-emerald-500 transition">Editar</button>
                         <button @click="openDelete = true; deleteForm = $refs.delForm{{ $loop->index }}" class="text-[9px] uppercase tracking-widest text-red-500 hover:text-red-300 transition">Borrar</button>
                         <form x-ref="delForm{{ $loop->index }}" action="{{ route('gestion.ejecutar', [$tabla, 'eliminar']) }}" method="POST" class="hidden">
-                            @csrf <input type="hidden" name="id" value="{{ array_values((array)$fila)[0] }}">
+                            @csrf <input type="hidden" name="id" value="{{ $fila->id }}">
                         </form>
                     </td>
                     @endif
@@ -70,7 +71,7 @@
     </div>
 
     @if(session('user_role') === 'Admin')
-    <div x-show="openDelete" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+    <div x-show="openDelete" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" style="display: none;">
         <div class="glass p-8 sm:p-12 w-full max-w-sm text-center border-white/20">
             <h3 class="font-light text-xl mb-8 uppercase tracking-widest text-white">¿Eliminar registro?</h3>
             <div class="flex gap-4">
@@ -80,19 +81,23 @@
         </div>
     </div>
 
-    <div x-show="openAdd || openEdit" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+    <div x-show="openAdd || openEdit" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" style="display: none;">
         <form :action="openAdd ? '{{ route('gestion.ejecutar', [$tabla, 'agregar']) }}' : '{{ route('gestion.ejecutar', [$tabla, 'editar']) }}'" method="POST" class="glass p-8 sm:p-12 w-full max-w-md border-white/20 max-h-[90vh] overflow-y-auto">
             @csrf
-            <input type="hidden" name="id" :value="openEdit ? Object.values(item)[0] : ''">
+            <input type="hidden" name="id" :value="openEdit ? item.id : ''">
             <h3 class="font-light text-2xl mb-10 uppercase tracking-widest text-white" x-text="openAdd ? 'Nuevo' : 'Editar'"></h3>
-            @foreach(array_keys((array)$datos->first()) as $col)
-                @if($col !== 'id')
-                <div class="mb-6">
-                    <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-2">{{ str_replace('_', ' ', $col) }}</label>
-                    <input type="text" name="{{ $col }}" :value="openEdit ? item.{{ $col }} : ''" class="w-full bg-transparent border-b border-white/20 p-2 text-white outline-none focus:border-emerald-500 transition">
-                </div>
-                @endif
-            @endforeach
+            
+            @if($datos->isNotEmpty())
+                @foreach(array_keys((array)$datos->first()->getAttributes()) as $col)
+                    @if($col !== 'id' && $col !== 'created_at' && $col !== 'updated_at' && $col !== 'email_verified_at' && $col !== 'remember_token')
+                    <div class="mb-6">
+                        <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-2">{{ str_replace('_', ' ', $col) }}</label>
+                        <input type="{{ $col === 'password' ? 'password' : 'text' }}" name="{{ $col }}" :value="openEdit ? item.{{ $col }} : ''" class="w-full bg-transparent border-b border-white/20 p-2 text-white outline-none focus:border-emerald-500 transition">
+                    </div>
+                    @endif
+                @endforeach
+            @endif
+
             <div class="flex gap-4 mt-12">
                 <button class="bg-emerald-500 text-black w-full py-3 text-[10px] uppercase font-bold tracking-widest hover:bg-emerald-400">Guardar</button>
                 <button type="button" @click="openAdd=false; openEdit=false" class="bg-white/10 text-white w-full py-3 text-[10px] uppercase font-bold tracking-widest">Cerrar</button>
